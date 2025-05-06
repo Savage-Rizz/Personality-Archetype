@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archetype Personality Quiz</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a8a5e6;
+            --background: #2d2d2d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background);
+            color: white;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .active {
+            display: block;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            width: 300px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .question {
+            background: #3a3a3a;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #4a4a4a;
+            border-radius: 5px;
+            margin: 30px 0;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 5px;
+            transition: width 0.4s ease;
+        }
+
+        .result-card {
+            background: #3a3a3a;
+            padding: 25px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        label {
+            display: block;
+            padding: 15px;
+            margin: 10px 0;
+            background: #4a4a4a;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        label:hover {
+            background: #5a5a5a;
+            transform: translateX(10px);
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .archetype-details {
+            margin-top: 30px;
+            background: #3a3a3a;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .archetype-details h3 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+
+        .archetype-details p {
+            margin: 10px 0;
+        }
+
+        .archetype-details ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Landing Page -->
+        <div class="section active" id="landing">
+            <h1>Discover Your Archetypes</h1>
+            <input type="text" id="userName" placeholder="Enter your name">
+            <button onclick="startQuiz()">Start Quiz</button>
+        </div>
+
+        <!-- Quiz Section -->
+        <div class="section" id="quiz">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <div id="questionContainer"></div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="section" id="results">
+            <div class="result-card">
+                <h2 id="resultName"></h2>
+                <div class="main-result">
+                    <h3>Your Primary Personality Archetype</h3>
+                    <h2 id="personalityType" style="color: var(--primary)"></h2>
+                    <p id="personalityDesc"></p>
+                    <div id="personalityDetails" class="archetype-details"></div>
+                </div>
+                <div class="victim-result">
+                    <h4>Top 3 Victim Archetypes:</h4>
+                    <ol id="victimList"></ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Complete Archetype Data
+        const questions = [
+            {
+                text: "How do you handle conflict?",
+                options: [
+                    { text: "Avoid it", archetype: ["Caregiver", "Novice"] },
+                    { text: "Confront it", archetype: ["Hero", "Conqueror"] },
+                    { text: "Analyze it", archetype: ["Sage", "Professor"] },
+                    { text: "Use humor", archetype: ["Jester", "Drama Queen"] },
+                    { text: "Seek compromise", archetype: ["Everyman", "Rescuer"] }
+                ]
+            },
+            {
+                text: "What's your idea of a perfect date?",
+                options: [
+                    { text: "Wild adventure", archetype: ["Explorer", "Disappointed Dreamer"] },
+                    { text: "Quiet night in", archetype: ["Innocent", "New Prude"] },
+                    { text: "Luxurious experience", archetype: ["Ruler", "Pampered Royal"] },
+                    { text: "Deep conversation", archetype: ["Sage", "Exotic Fetishist"] },
+                    { text: "Surprising twists", archetype: ["Magician", "Crushed Star"] }
+                ]
+            },
+            {
+                text: "How do you make decisions?",
+                options: [
+                    { text: "Follow my gut", archetype: ["Rebel", "Reformed Rake"] },
+                    { text: "Weigh pros/cons", archetype: ["Sage", "Professor"] },
+                    { text: "Ask for advice", archetype: ["Everyman", "Novice"] },
+                    { text: "Prioritize others", archetype: ["Caregiver", "Rescuer"] },
+                    { text: "Chase excitement", archetype: ["Explorer", "Drama Queen"] }
+                ]
+            },
+            {
+                text: "What's your biggest fear?",
+                options: [
+                    { text: "Being ignored", archetype: ["Lover", "Crushed Star"] },
+                    { text: "Losing control", archetype: ["Ruler", "Aging Baby"] },
+                    { text: "Being ordinary", archetype: ["Creator", "Disappointed Dreamer"] },
+                    { text: "Betrayal", archetype: ["Hero", "Conqueror"] },
+                    { text: "Loneliness", archetype: ["Everyman", "Lonely Leader"] }
+                ]
+            },
+            {
+                text: "How do you express love?",
+                options: [
+                    { text: "Grand gestures", archetype: ["Lover", "Sensualist"] },
+                    { text: "Quiet support", archetype: ["Caregiver", "Rescuer"] },
+                    { text: "Intellectual bonding", archetype: ["Sage", "Professor"] },
+                    { text: "Playful teasing", archetype: ["Jester", "Coquette"] },
+                    { text: "Protectiveness", archetype: ["Hero", "Conqueror"] }
+                ]
+            },
+            {
+                text: "What attracts you most in others?",
+                options: [
+                    { text: "Confidence", archetype: ["Ruler", "Charismatic"] },
+                    { text: "Mystery", archetype: ["Magician", "Siren"] },
+                    { text: "Kindness", archetype: ["Caregiver", "Rescuer"] },
+                    { text: "Humor", archetype: ["Jester", "Drama Queen"] },
+                    { text: "Ambition", archetype: ["Hero", "Conqueror"] }
+                ]
+            },
+            {
+                text: "How do you react to criticism?",
+                options: [
+                    { text: "Defensive", archetype: ["Rebel", "Reformed Rake"] },
+                    { text: "Reflective", archetype: ["Sage", "Professor"] },
+                    { text: "Hurt", archetype: ["Innocent", "Crushed Star"] },
+                    { text: "Indifferent", archetype: ["Jester", "Roué"] },
+                    { text: "Analyze it", archetype: ["Creator", "Exotic Fetishist"] }
+                ]
+            },
+            {
+                text: "What's your role in a group?",
+                options: [
+                    { text: "Leader", archetype: ["Ruler", "Lonely Leader"] },
+                    { text: "Mediator", archetype: ["Everyman", "Rescuer"] },
+                    { text: "Idea-generator", archetype: ["Creator", "Disappointed Dreamer"] },
+                    { text: "Entertainer", archetype: ["Jester", "Drama Queen"] },
+                    { text: "Observer", archetype: ["Sage", "New Prude"] }
+                ]
+            },
+            {
+                text: "What's your guilty pleasure?",
+                options: [
+                    { text: "Romantic novels", archetype: ["Lover", "Idol Worshiper"] },
+                    { text: "Reality TV", archetype: ["Jester", "Drama Queen"] },
+                    { text: "Luxury shopping", archetype: ["Ruler", "Pampered Royal"] },
+                    { text: "Thrill-seeking", archetype: ["Explorer", "Reformed Rake"] },
+                    { text: "Learning", archetype: ["Sage", "Professor"] }
+                ]
+            },
+            {
+                text: "How do you handle boredom?",
+                options: [
+                    { text: "Seek adventure", archetype: ["Explorer", "Disappointed Dreamer"] },
+                    { text: "Daydream", archetype: ["Creator", "Crushed Star"] },
+                    { text: "Socialize", archetype: ["Lover", "Sensualist"] },
+                    { text: "Stir up drama", archetype: ["Rebel", "Drama Queen"] },
+                    { text: "Plan something", archetype: ["Ruler", "Conqueror"] }
+                ]
+            },
+            {
+                text: "What's your biggest strength?",
+                options: [
+                    { text: "Empathy", archetype: ["Caregiver", "Rescuer"] },
+                    { text: "Courage", archetype: ["Hero", "Conqueror"] },
+                    { text: "Creativity", archetype: ["Creator", "Disappointed Dreamer"] },
+                    { text: "Logic", archetype: ["Sage", "Professor"] },
+                    { text: "Adaptability", archetype: ["Everyman", "Floating Gender"] }
+                ]
+            },
+            {
+                text: "How do you recharge emotionally?",
+                options: [
+                    { text: "Alone time", archetype: ["Innocent", "New Prude"] },
+                    { text: "Socializing", archetype: ["Lover", "Sensualist"] },
+                    { text: "New experiences", archetype: ["Explorer", "Exotic Fetishist"] },
+                    { text: "Creative projects", archetype: ["Creator", "Disappointed Dreamer"] },
+                    { text: "Routine", archetype: ["Ruler", "Pampered Royal"] }
+                ]
+            },
+            {
+                text: "What's your default mood?",
+                options: [
+                    { text: "Optimistic", archetype: ["Innocent", "Crushed Star"] },
+                    { text: "Analytical", archetype: ["Sage", "Professor"] },
+                    { text: "Playful", archetype: ["Jester", "Drama Queen"] },
+                    { text: "Restless", archetype: ["Explorer", "Reformed Rake"] },
+                    { text: "Protective", archetype: ["Hero", "Conqueror"] }
+                ]
+            },
+            {
+                text: "What's your approach to rules?",
+                options: [
+                    { text: "Follow them", archetype: ["Innocent", "New Prude"] },
+                    { text: "Bend them", archetype: ["Rebel", "Reformed Rake"] },
+                    { text: "Ignore them", archetype: ["Outlaw", "Roué"] },
+                    { text: "Improve them", archetype: ["Creator", "Disappointed Dreamer"] },
+                    { text: "Enforce them", archetype: ["Ruler", "Lonely Leader"] }
+                ]
+            },
+            {
+                text: "What do you value most in a partner?",
+                options: [
+                    { text: "Loyalty", archetype: ["Hero", "Conqueror"] },
+                    { text: "Intelligence", archetype: ["Sage", "Professor"] },
+                    { text: "Spontaneity", archetype: ["Explorer", "Disappointed Dreamer"] },
+                    { text: "Affection", archetype: ["Lover", "Sensualist"] },
+                    { text: "Ambition", archetype: ["Ruler", "Pampered Royal"] }
+                ]
+            },
+            {
+                text: "How do you handle failure?",
+                options: [
+                    { text: "Blame others", archetype: ["Rebel", "Reformed Rake"] },
+                    { text: "Learn from it", archetype: ["Sage", "Professor"] },
+                    { text: "Hide it", archetype: ["Innocent", "New Prude"] },
+                    { text: "Laugh it off", archetype: ["Jester", "Drama Queen"] },
+                    { text: "Try harder", archetype: ["Hero", "Conqueror"] }
+                ]
+            },
+            {
+                text: "What's your favorite genre?",
+                options: [
+                    { text: "Fantasy", archetype: ["Magician", "Disappointed Dreamer"] },
+                    { text: "Romance", archetype: ["Lover", "Idol Worshiper"] },
+                    { text: "Mystery", archetype: ["Sage", "Exotic Fetishist"] },
+                    { text: "Comedy", archetype: ["Jester", "Drama Queen"] },
+                    { text: "History", archetype: ["Ruler", "Lonely Leader"] }
+                ]
+            },
+            {
+                text: "What's your life motto?",
+                options: [
+                    { text: "Carpe Diem", archetype: ["Explorer", "Reformed Rake"] },
+                    { text: "Know thyself", archetype: ["Sage", "Professor"] },
+                    { text: "Live and let live", archetype: ["Everyman", "Rescuer"] },
+                    { text: "Rules are meant to be broken", archetype: ["Rebel", "Roué"] },
+                    { text: "Power is everything", archetype: ["Ruler", "Pampered Royal"] }
+                ]
+            },
+            {
+                text: "How do you respond to flirting?",
+                options: [
+                    { text: "Play along", archetype: ["Jester", "Coquette"] },
+                    { text: "Analyze intentions", archetype: ["Sage", "Professor"] },
+                    { text: "Shy away", archetype: ["Innocent", "New Prude"] },
+                    { text: "Enjoy the chase", archetype: ["Explorer", "Reformed Rake"] },
+                    { text: "Take charge", archetype: ["Hero", "Conqueror"] }
+                ]
+            },
+            {
+                text: "What defines your identity?",
+                options: [
+                    { text: "Relationships", archetype: ["Lover", "Sensualist"] },
+                    { text: "Achievements", archetype: ["Hero", "Crushed Star"] },
+                    { text: "Knowledge", archetype: ["Sage", "Professor"] },
+                    { text: "Creativity", archetype: ["Creator", "Disappointed Dreamer"] },
+                    { text: "Status", archetype: ["Ruler", "Pampered Royal"] }
+                ]
+            }
+        ];
+
+        const personalityArchetypes = {
+            "Innocent": {
+                description: "Optimistic and trusting, you believe in the good of people.",
+                category: "Freedom",
+                details: {
+                    motto: "Free to be you and me",
+                    goal: "To be happy",
+                    fear: "Doing something wrong or bad",
+                    traits: ["Optimistic", "Honest", "Pure", "Naive"],
+                    examples: ["Dorothy (The Wizard of Oz)", "Forrest Gump"]
+                }
+            },
+            "Everyman": {
+                description: "Relatable and down-to-earth, you value belonging.",
+                category: "Social",
+                details: {
+                    motto: "All men and women are created equal",
+                    goal: "To belong, fit in",
+                    fear: "Standing out, being rejected",
+                    traits: ["Friendly", "Empathetic", "Grounded", "Humble"],
+                    examples: ["Bilbo Baggins", "Samwise Gamgee"]
+                }
+            },
+            "Hero": {
+                description: "Courageous and determined, you thrive on challenges.",
+                category: "Ego",
+                details: {
+                    motto: "Where there's a will, there's a way",
+                    goal: "To prove worth through courage",
+                    fear: "Weakness, failure",
+                    traits: ["Courageous", "Determined", "Honorable", "Competitive"],
+                    examples: ["Superman", "Wonder Woman"]
+                }
+            },
+            "Caregiver": {
+                description: "Nurturing and protective, you prioritize others' needs.",
+                category: "Order",
+                details: {
+                    motto: "Love your neighbor as yourself",
+                    goal: "To help and care for others",
+                    fear: "Selfishness, ingratitude",
+                    traits: ["Compassionate", "Nurturing", "Generous"],
+                    examples: ["Marge Simpson", "Mary Poppins"]
+                }
+            },
+            "Explorer": {
+                description: "Adventurous and curious, you crave new experiences.",
+                category: "Freedom",
+                details: {
+                    motto: "Don't fence me in",
+                    goal: "To experience a better, more authentic life",
+                    fear: "Conformity, being trapped",
+                    traits: ["Restless", "Adventurous", "Independent"],
+                    examples: ["Indiana Jones", "Moana"]
+                }
+            },
+            "Rebel": {
+                description: "Rule-breaking and revolutionary, you challenge norms.",
+                category: "Ego",
+                details: {
+                    motto: "Rules are made to be broken",
+                    goal: "To overturn what isn't working",
+                    fear: "Powerlessness",
+                    traits: ["Radical", "Disruptive", "Brave", "Free-spirited"],
+                    examples: ["V (V for Vendetta)", "James Dean"]
+                }
+            },
+            "Lover": {
+                description: "Passionate and romantic, you seek deep connections.",
+                category: "Social",
+                details: {
+                    motto: "I only have eyes for you",
+                    goal: "To be in a relationship with people, work, or surroundings",
+                    fear: "Being alone, unwanted",
+                    traits: ["Passionate", "Romantic", "Committed"],
+                    examples: ["Romeo and Juliet", "Jack (Titanic)"]
+                }
+            },
+            "Creator": {
+                description: "Innovative and visionary, you express through creation.",
+                category: "Order",
+                details: {
+                    motto: "If you can imagine it, it can be done",
+                    goal: "To create something of enduring value",
+                    fear: "Mediocrity, being uninspired",
+                    traits: ["Imaginative", "Artistic", "Driven", "Innovative"],
+                    examples: ["Tony Stark", "Steve Jobs (in storytelling)"]
+                }
+            },
+            "Jester": {
+                description: "Playful and humorous, you bring joy to others.",
+                category: "Social",
+                details: {
+                    motto: "You only live once",
+                    goal: "To live in the moment with full enjoyment",
+                    fear: "Boredom or being boring",
+                    traits: ["Playful", "Humorous", "Spontaneous", "Fun-loving"],
+                    examples: ["Jack Sparrow", "The Mask"]
+                }
+            },
+            "Sage": {
+                description: "Wise and analytical, you seek knowledge and truth.",
+                category: "Freedom",
+                details: {
+                    motto: "The truth will set you free",
+                    goal: "To find truth and understanding",
+                    fear: "Ignorance, being misled",
+                    traits: ["Wise", "Analytical", "Reflective", "Articulate"],
+                    examples: ["Yoda", "Gandalf"]
+                }
+            },
+            "Magician": {
+                description: "Transformative and charismatic, you create change.",
+                category: "Ego",
+                details: {
+                    motto: "I make things happen",
+                    goal: "To transform situations or influence change",
+                    fear: "Unintended negative consequences",
+                    traits: ["Visionary", "Powerful", "Charismatic"],
+                    examples: ["Dumbledore", "Merlin"]
+                }
+            },
+            "Ruler": {
+                description: "Authoritative and responsible, you lead with control.",
+                category: "Order",
+                details: {
+                    motto: "Power isn't everything, it's the only thing",
+                    goal: "To create a successful and prosperous kingdom",
+                    fear: "Chaos, being overthrown",
+                    traits: ["Responsible", "Organized", "Authoritative"],
+                    examples: ["Mufasa", "Tywin Lannister"]
+                }
+            }
+        };
+
+        const victimArchetypes = {
+            "Reformed Rake": { description: "Formerly wild, now craving stability but easily tempted." },
+            "Disappointed Dreamer": { description: "Yearns for escapism from a mundane life." },
+            "Pampered Royal": { description: "Spoiled and entitled, needs constant attention." },
+            "New Prude": { description: "Repressed but secretly curious about transgression." },
+            "Crushed Star": { description: "Once admired, now insecure and validation-seeking." },
+            "Novice": { description: "Inexperienced and eager to learn." },
+            "Conqueror": { description: "Thrives on challenges and dominance." },
+            "Exotic Fetishist": { description: "Obsessed with the unfamiliar and unusual." },
+            "Drama Queen": { description: "Loves emotional turbulence and chaos." },
+            "Professor": { description: "Overanalyzes, needs intellectual stimulation." },
+            "Beauty": { description: "Relies on physical allure, fears aging." },
+            "Aging Baby": { description: "Clings to youth and dependency." },
+            "Rescuer": { description: "Fixated on saving others, has savior complex." },
+            "Roué": { description: "Cynical and jaded, seeks constant pleasure." },
+            "Idol Worshiper": { description: "Obsessed with idealizing others." },
+            "Sensualist": { description: "Prioritizes physical pleasure above all." },
+            "Lonely Leader": { description: "Powerful but isolated, seeks connection." },
+            "Floating Gender": { description: "Rejects traditional gender roles." }
+        };
+
+        // Quiz Logic
+        let currentQuestion = 0;
+        let userName = "";
+        let scores = { personality: {}, victim: {} };
+
+        function initScores() {
+            Object.keys(personalityArchetypes).forEach(arch => scores.personality[arch] = 0);
+            Object.keys(victimArchetypes).forEach(arch => scores.victim[arch] = 0);
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            let html = `<div class="question"><h3>${question.text}</h3>`;
+            question.options.forEach((opt, idx) => {
+                html += `<label>
+                    <input type="radio" name="answer" value="${idx}">
+                    ${opt.text}
+                </label>`;
+            });
+            html += `<button onclick="nextQuestion()">Next</button></div>`;
+            document.getElementById('questionContainer').innerHTML = html;
+            updateProgress();
+        }
+
+        function nextQuestion() {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            if (!selected) return alert('Please select an answer!');
+            
+            const answer = questions[currentQuestion].options[selected.value];
+            answer.archetype.forEach(arch => {
+                if (scores.personality[arch] !== undefined) scores.personality[arch]++;
+                if (scores.victim[arch] !== undefined) scores.victim[arch]++;
+            });
+
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const personalityResult = Object.entries(scores.personality).sort((a,b) => b[1]-a[1])[0];
+            const victimResults = Object.entries(scores.victim).sort((a,b) => b[1]-a[1]).slice(0,3);
+
+            document.getElementById('resultName').textContent = `${userName}'s Results`;
+            document.getElementById('personalityType').textContent = personalityResult[0];
+            document.getElementById('personalityDesc').textContent = personalityArchetypes[personalityResult[0]].description;
+
+            // Display detailed archetype information
+            const details = personalityArchetypes[personalityResult[0]].details;
+            let detailsHTML = `
+                <h3>${personalityResult[0]} Archetype Details</h3>
+                <p><strong>Motto:</strong> ${details.motto}</p>
+                <p><strong>Goal:</strong> ${details.goal}</p>
+                <p><strong>Fear:</strong> ${details.fear}</p>
+                <p><strong>Key Traits:</strong></p>
+                <ul>${details.traits.map(trait => `<li>${trait}</li>`).join('')}</ul>
+                <p><strong>Examples:</strong> ${details.examples.join(', ')}</p>
+            `;
+            document.getElementById('personalityDetails').innerHTML = detailsHTML;
+
+            // Display victim archetypes
+            const victimList = document.getElementById('victimList');
+            victimList.innerHTML = victimResults.map(([arch]) => `
+                <li><strong>${arch}</strong>: ${victimArchetypes[arch].description}</li>
+            `).join('');
+
+            document.getElementById('quiz').classList.remove('active');
+            document.getElementById('results').classList.add('active');
+        }
+
+        function startQuiz() {
+            userName = document.getElementById('userName').value.trim();
+            if (!userName) return alert('Please enter your name');
+            initScores();
+            document.getElementById('landing').classList.remove('active');
+            document.getElementById('quiz').classList.add('active');
+            showQuestion();
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestion / questions.length) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+        }
+    </script>
+</body>
+</html>
