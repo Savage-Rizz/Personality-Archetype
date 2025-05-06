@@ -96,7 +96,9 @@
         }
 
         label {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             padding: 15px;
             margin: 10px 0;
             background: #4a4a4a;
@@ -110,8 +112,10 @@
             transform: translateX(10px);
         }
 
-        input[type="radio"] {
-            margin-right: 10px;
+        input[type="checkbox"] {
+            accent-color: var(--primary);
+            min-width: 18px;
+            min-height: 18px;
         }
 
         .archetype-details {
@@ -548,7 +552,7 @@
             let html = `<div class="question"><h3>${question.text}</h3>`;
             question.options.forEach((opt, idx) => {
                 html += `<label>
-                    <input type="radio" name="answer" value="${idx}">
+                    <input type="checkbox" name="answer" value="${idx}">
                     ${opt.text}
                 </label>`;
             });
@@ -558,13 +562,15 @@
         }
 
         function nextQuestion() {
-            const selected = document.querySelector('input[name="answer"]:checked');
-            if (!selected) return alert('Please select an answer!');
+            const selected = document.querySelectorAll('input[name="answer"]:checked');
+            if (selected.length === 0) return alert('Please select at least one answer!');
             
-            const answer = questions[currentQuestion].options[selected.value];
-            answer.archetype.forEach(arch => {
-                if (scores.personality[arch] !== undefined) scores.personality[arch]++;
-                if (scores.victim[arch] !== undefined) scores.victim[arch]++;
+            selected.forEach(checkbox => {
+                const answer = questions[currentQuestion].options[checkbox.value];
+                answer.archetype.forEach(arch => {
+                    if (scores.personality[arch] !== undefined) scores.personality[arch]++;
+                    if (scores.victim[arch] !== undefined) scores.victim[arch]++;
+                });
             });
 
             currentQuestion++;
