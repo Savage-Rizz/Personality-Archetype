@@ -43,6 +43,8 @@
             border-radius: 8px;
             font-size: 16px;
             margin: 10px 0;
+            background-color: #4a4a4a;
+            color: white;
         }
 
         button {
@@ -139,6 +141,79 @@
             margin: 10px 0;
             padding-left: 20px;
         }
+
+        /* Radar Chart Styles */
+        .radar-chart-container {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .radar-chart {
+            width: 340px; /* Increased to accommodate larger SVG */
+            height: 340px; /* Increased to accommodate larger SVG */
+            position: relative;
+            background-color: #3a3a3a;
+            border-radius: 15px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .radar-chart svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .radar-grid-circle {
+            fill: none;
+            stroke: #777; /* Lighter stroke for visibility */
+            stroke-width: 1;
+        }
+
+        .radar-axis-line {
+            stroke: #777; /* Lighter stroke for visibility */
+            stroke-width: 1;
+        }
+
+        .radar-data-point {
+            fill: var(--primary);
+            r: 5; /* Larger points for visibility */
+            stroke: white;
+            stroke-width: 1.5;
+        }
+
+        .radar-data-area {
+            fill: var(--primary);
+            opacity: 0.5; /* Increased opacity for visibility */
+            stroke: var(--primary);
+            stroke-width: 2;
+        }
+
+        .radar-label {
+            fill: white;
+            font-size: 8px; /* Reduced font size to prevent clipping */
+            font-weight: normal;
+        }
+
+        .trait-scores {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .trait-score {
+            background: #4a4a4a;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .trait-score span {
+            color: var(--primary);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -168,6 +243,16 @@
                     <p id="personalityDesc"></p>
                     <div id="personalityDetails" class="archetype-details"></div>
                 </div>
+
+                <!-- Radar Chart Section -->
+                <h3>Your Personality Traits</h3>
+                <div class="radar-chart-container">
+                    <div class="radar-chart" id="radarChartContainer">
+                        <!-- SVG Radar Chart will be drawn here by JavaScript -->
+                    </div>
+                </div>
+                <div class="trait-scores" id="traitScores"></div>
+
                 <div class="victim-result">
                     <h4>Top 3 Victim Archetypes:</h4>
                     <ol id="victimList"></ol>
@@ -177,206 +262,206 @@
     </div>
 
     <script>
-        // Complete Archetype Data
+        // Complete Archetype Data (Includes trait mappings within options)
         const questions = [
             {
                 text: "How do you handle conflict?",
                 options: [
-                    { text: "Avoid it", archetype: ["Caregiver", "Novice"] },
-                    { text: "Confront it", archetype: ["Hero", "Conqueror"] },
-                    { text: "Analyze it", archetype: ["Sage", "Professor"] },
-                    { text: "Use humor", archetype: ["Jester", "Drama Queen"] },
-                    { text: "Seek compromise", archetype: ["Everyman", "Rescuer"] }
+                    { text: "Avoid it", archetype: ["Caregiver", "Novice"], traits: { Trustworthiness: 1, Communication: 1 } },
+                    { text: "Confront it", archetype: ["Hero", "Conqueror"], traits: { Trustworthiness: 3, Communication: 3 } },
+                    { text: "Analyze it", archetype: ["Sage", "Professor"], traits: { Trustworthiness: 4, Communication: 4 } },
+                    { text: "Use humor", archetype: ["Jester", "Drama Queen"], traits: { Trustworthiness: 2, Communication: 3, Humor: 5 } },
+                    { text: "Seek compromise", archetype: ["Everyman", "Rescuer"], traits: { Trustworthiness: 5, Communication: 5 } }
                 ]
             },
             {
                 text: "What's your idea of a perfect date?",
                 options: [
-                    { text: "Wild adventure", archetype: ["Explorer", "Disappointed Dreamer"] },
-                    { text: "Quiet night in", archetype: ["Innocent", "New Prude"] },
-                    { text: "Luxurious experience", archetype: ["Ruler", "Pampered Royal"] },
-                    { text: "Deep conversation", archetype: ["Sage", "Exotic Fetishist"] },
-                    { text: "Surprising twists", archetype: ["Magician", "Crushed Star"] }
+                    { text: "Wild adventure", archetype: ["Explorer", "Disappointed Dreamer"], traits: { Humor: 3 } },
+                    { text: "Quiet night in", archetype: ["Innocent", "New Prude"], traits: {} },
+                    { text: "Luxurious experience", archetype: ["Ruler", "Pampered Royal"], traits: {} },
+                    { text: "Deep conversation", archetype: ["Sage", "Exotic Fetishist"], traits: { Humor: 2 } },
+                    { text: "Surprising twists", archetype: ["Magician", "Crushed Star"], traits: { Humor: 4 } }
                 ]
             },
             {
                 text: "How do you make decisions?",
                 options: [
-                    { text: "Follow my gut", archetype: ["Rebel", "Reformed Rake"] },
-                    { text: "Weigh pros/cons", archetype: ["Sage", "Professor"] },
-                    { text: "Ask for advice", archetype: ["Everyman", "Novice"] },
-                    { text: "Prioritize others", archetype: ["Caregiver", "Rescuer"] },
-                    { text: "Chase excitement", archetype: ["Explorer", "Drama Queen"] }
+                    { text: "Follow my gut", archetype: ["Rebel", "Reformed Rake"], traits: { Trustworthiness: 2, Discipline: 2, Carrying: 2 } },
+                    { text: "Weigh pros/cons", archetype: ["Sage", "Professor"], traits: { Trustworthiness: 5, Communication: 4, Discipline: 5, Carrying: 5 } },
+                    { text: "Ask for advice", archetype: ["Everyman", "Novice"], traits: { Trustworthiness: 3, Communication: 5, Supportive: 3, Carrying: 4 } },
+                    { text: "Prioritize others", archetype: ["Caregiver", "Rescuer"], traits: { Trustworthiness: 4, Supportive: 5, Carrying: 4 } },
+                    { text: "Chase excitement", archetype: ["Explorer", "Drama Queen"], traits: { Trustworthiness: 1, Discipline: 2, Carrying: 1 } }
                 ]
             },
             {
                 text: "What's your biggest fear?",
                 options: [
-                    { text: "Being ignored", archetype: ["Lover", "Crushed Star"] },
-                    { text: "Losing control", archetype: ["Ruler", "Aging Baby"] },
-                    { text: "Being ordinary", archetype: ["Creator", "Disappointed Dreamer"] },
-                    { text: "Betrayal", archetype: ["Hero", "Conqueror"] },
-                    { text: "Loneliness", archetype: ["Everyman", "Lonely Leader"] }
+                    { text: "Being ignored", archetype: ["Lover", "Crushed Star"], traits: {} },
+                    { text: "Losing control", archetype: ["Ruler", "Aging Baby"], traits: {} },
+                    { text: "Being ordinary", archetype: ["Creator", "Disappointed Dreamer"], traits: {} },
+                    { text: "Betrayal", archetype: ["Hero", "Conqueror"], traits: { Trustworthiness: 5 } },
+                    { text: "Loneliness", archetype: ["Everyman", "Lonely Leader"], traits: {} }
                 ]
             },
             {
                 text: "How do you express love?",
                 options: [
-                    { text: "Grand gestures", archetype: ["Lover", "Sensualist"] },
-                    { text: "Quiet support", archetype: ["Caregiver", "Rescuer"] },
-                    { text: "Intellectual bonding", archetype: ["Sage", "Professor"] },
-                    { text: "Playful teasing", archetype: ["Jester", "Coquette"] },
-                    { text: "Protectiveness", archetype: ["Hero", "Conqueror"] }
+                    { text: "Grand gestures", archetype: ["Lover", "Sensualist"], traits: { Trustworthiness: 2, Carrying: 3 } },
+                    { text: "Quiet support", archetype: ["Caregiver", "Rescuer"], traits: { Trustworthiness: 5, Supportive: 5, Carrying: 4 } },
+                    { text: "Intellectual bonding", archetype: ["Sage", "Professor"], traits: { Trustworthiness: 2, Carrying: 2 } },
+                    { text: "Playful teasing", archetype: ["Jester", "Coquette"], traits: { Humor: 5, Carrying: 2 } },
+                    { text: "Protectiveness", archetype: ["Hero", "Conqueror"], traits: { Trustworthiness: 4, Supportive: 4, Carrying: 5 } }
                 ]
             },
             {
                 text: "What attracts you most in others?",
                 options: [
-                    { text: "Confidence", archetype: ["Ruler", "Charismatic"] },
-                    { text: "Mystery", archetype: ["Magician", "Siren"] },
-                    { text: "Kindness", archetype: ["Caregiver", "Rescuer"] },
-                    { text: "Humor", archetype: ["Jester", "Drama Queen"] },
-                    { text: "Ambition", archetype: ["Hero", "Conqueror"] }
+                    { text: "Confidence", archetype: ["Ruler", "Charismatic"], traits: {} },
+                    { text: "Mystery", archetype: ["Magician", "Siren"], traits: {} },
+                    { text: "Kindness", archetype: ["Caregiver", "Rescuer"], traits: {} },
+                    { text: "Humor", archetype: ["Jester", "Drama Queen"], traits: { Humor: 5, Communication: 2 } },
+                    { text: "Ambition", archetype: ["Hero", "Conqueror"], traits: {} }
                 ]
             },
             {
                 text: "How do you react to criticism?",
                 options: [
-                    { text: "Defensive", archetype: ["Rebel", "Reformed Rake"] },
-                    { text: "Reflective", archetype: ["Sage", "Professor"] },
-                    { text: "Hurt", archetype: ["Innocent", "Crushed Star"] },
-                    { text: "Indifferent", archetype: ["Jester", "Roué"] },
-                    { text: "Analyze it", archetype: ["Creator", "Exotic Fetishist"] }
+                    { text: "Defensive", archetype: ["Rebel", "Reformed Rake"], traits: { Communication: 2 } },
+                    { text: "Reflective", archetype: ["Sage", "Professor"], traits: { Communication: 5 } },
+                    { text: "Hurt", archetype: ["Innocent", "Crushed Star"], traits: { Communication: 2 } },
+                    { text: "Indifferent", archetype: ["Jester", "Roué"], traits: { Communication: 2 } },
+                    { text: "Analyize it", archetype: ["Creator", "Exotic Fetishist"], traits: { Communication: 4 } }
                 ]
             },
             {
                 text: "What's your role in a group?",
                 options: [
-                    { text: "Leader", archetype: ["Ruler", "Lonely Leader"] },
-                    { text: "Mediator", archetype: ["Everyman", "Rescuer"] },
-                    { text: "Idea-generator", archetype: ["Creator", "Disappointed Dreamer"] },
-                    { text: "Entertainer", archetype: ["Jester", "Drama Queen"] },
-                    { text: "Observer", archetype: ["Sage", "New Prude"] }
+                    { text: "Leader", archetype: ["Ruler", "Lonely Leader"], traits: { Communication: 3, Carrying: 5 } },
+                    { text: "Mediator", archetype: ["Everyman", "Rescuer"], traits: { Communication: 5, Supportive: 5, Carrying: 4 } },
+                    { text: "Idea-generator", archetype: ["Creator", "Disappointed Dreamer"], traits: { Communication: 2, Carrying: 2 } },
+                    { text: "Entertainer", archetype: ["Jester", "Drama Queen"], traits: { Communication: 3, Humor: 5, Carrying: 2 } },
+                    { text: "Observer", archetype: ["Sage", "New Prude"], traits: { Communication: 2, Carrying: 3 } }
                 ]
             },
             {
                 text: "What's your guilty pleasure?",
                 options: [
-                    { text: "Romantic novels", archetype: ["Lover", "Idol Worshiper"] },
-                    { text: "Reality TV", archetype: ["Jester", "Drama Queen"] },
-                    { text: "Luxury shopping", archetype: ["Ruler", "Pampered Royal"] },
-                    { text: "Thrill-seeking", archetype: ["Explorer", "Reformed Rake"] },
-                    { text: "Learning", archetype: ["Sage", "Professor"] }
+                    { text: "Romantic novels", archetype: ["Lover", "Idol Worshiper"], traits: {} },
+                    { text: "Reality TV", archetype: ["Jester", "Drama Queen"], traits: { Humor: 5 } },
+                    { text: "Luxury shopping", archetype: ["Ruler", "Pampered Royal"], traits: {} },
+                    { text: "Thrill-seeking", archetype: ["Explorer", "Reformed Rake"], traits: {} },
+                    { text: "Learning", archetype: ["Sage", "Professor"], traits: {} }
                 ]
             },
             {
                 text: "How do you handle boredom?",
                 options: [
-                    { text: "Seek adventure", archetype: ["Explorer", "Disappointed Dreamer"] },
-                    { text: "Daydream", archetype: ["Creator", "Crushed Star"] },
-                    { text: "Socialize", archetype: ["Lover", "Sensualist"] },
-                    { text: "Stir up drama", archetype: ["Rebel", "Drama Queen"] },
-                    { text: "Plan something", archetype: ["Ruler", "Conqueror"] }
+                    { text: "Seek adventure", archetype: ["Explorer", "Disappointed Dreamer"], traits: { Discipline: 2 } },
+                    { text: "Daydream", archetype: ["Creator", "Crushed Star"], traits: { Discipline: 2 } },
+                    { text: "Socialize", archetype: ["Lover", "Sensualist"], traits: {} },
+                    { text: "Stir up drama", archetype: ["Rebel", "Drama Queen"], traits: { Discipline: 1 } },
+                    { text: "Plan something", archetype: ["Ruler", "Conqueror"], traits: { Discipline: 5 } }
                 ]
             },
             {
                 text: "What's your biggest strength?",
                 options: [
-                    { text: "Empathy", archetype: ["Caregiver", "Rescuer"] },
-                    { text: "Courage", archetype: ["Hero", "Conqueror"] },
-                    { text: "Creativity", archetype: ["Creator", "Disappointed Dreamer"] },
-                    { text: "Logic", archetype: ["Sage", "Professor"] },
-                    { text: "Adaptability", archetype: ["Everyman", "Floating Gender"] }
+                    { text: "Empathy", archetype: ["Caregiver", "Rescuer"], traits: { Supportive: 5, Carrying: 4 } },
+                    { text: "Courage", archetype: ["Hero", "Conqueror"], traits: { Carrying: 3 } },
+                    { text: "Creativity", archetype: ["Creator", "Disappointed Dreamer"], traits: { Carrying: 3 } },
+                    { text: "Logic", archetype: ["Sage", "Professor"], traits: { Carrying: 5 } },
+                    { text: "Adaptability", archetype: ["Everyman", "Floating Gender"], traits: { Carrying: 3 } }
                 ]
             },
             {
                 text: "How do you recharge emotionally?",
                 options: [
-                    { text: "Alone time", archetype: ["Innocent", "New Prude"] },
-                    { text: "Socializing", archetype: ["Lover", "Sensualist"] },
-                    { text: "New experiences", archetype: ["Explorer", "Exotic Fetishist"] },
-                    { text: "Creative projects", archetype: ["Creator", "Disappointed Dreamer"] },
-                    { text: "Routine", archetype: ["Ruler", "Pampered Royal"] }
+                    { text: "Alone time", archetype: ["Innocent", "New Prude"], traits: { Carrying: 4 } },
+                    { text: "Socializing", archetype: ["Lover", "Sensualist"], traits: { Carrying: 3 } },
+                    { text: "New experiences", archetype: ["Explorer", "Exotic Fetishist"], traits: { Carrying: 2 } },
+                    { text: "Creative projects", archetype: ["Creator", "Disappointed Dreamer"], traits: { Carrying: 2 } },
+                    { text: "Routine", archetype: ["Ruler", "Pampered Royal"], traits: { Carrying: 5 } }
                 ]
             },
             {
                 text: "What's your default mood?",
                 options: [
-                    { text: "Optimistic", archetype: ["Innocent", "Crushed Star"] },
-                    { text: "Analytical", archetype: ["Sage", "Professor"] },
-                    { text: "Playful", archetype: ["Jester", "Drama Queen"] },
-                    { text: "Restless", archetype: ["Explorer", "Reformed Rake"] },
-                    { text: "Protective", archetype: ["Hero", "Conqueror"] }
+                    { text: "Optimistic", archetype: ["Innocent", "Crushed Star"], traits: {} },
+                    { text: "Analytical", archetype: ["Sage", "Professor"], traits: {} },
+                    { text: "Playful", archetype: ["Jester", "Drama Queen"], traits: { Humor: 5 } },
+                    { text: "Restless", archetype: ["Explorer", "Reformed Rake"], traits: {} },
+                    { text: "Protective", archetype: ["Hero", "Conqueror"], traits: {} }
                 ]
             },
             {
                 text: "What's your approach to rules?",
                 options: [
-                    { text: "Follow them", archetype: ["Innocent", "New Prude"] },
-                    { text: "Bend them", archetype: ["Rebel", "Reformed Rake"] },
-                    { text: "Ignore them", archetype: ["Outlaw", "Roué"] },
-                    { text: "Improve them", archetype: ["Creator", "Disappointed Dreamer"] },
-                    { text: "Enforce them", archetype: ["Ruler", "Lonely Leader"] }
+                    { text: "Follow them", archetype: ["Innocent", "New Prude"], traits: { Trustworthiness: 5, Discipline: 5, Carrying: 5 } },
+                    { text: "Bend them", archetype: ["Rebel", "Reformed Rake"], traits: { Trustworthiness: 2, Discipline: 1, Carrying: 2 } },
+                    { text: "Ignore them", archetype: ["Outlaw", "Roué"], traits: { Trustworthiness: 1, Discipline: 1, Carrying: 2 } },
+                    { text: "Improve them", archetype: ["Creator", "Disappointed Dreamer"], traits: { Discipline: 3, Carrying: 3 } },
+                    { text: "Enforce them", archetype: ["Ruler", "Lonely Leader"], traits: { Trustworthiness: 4, Discipline: 5, Carrying: 4 } }
                 ]
             },
             {
                 text: "What do you value most in a partner?",
                 options: [
-                    { text: "Loyalty", archetype: ["Hero", "Conqueror"] },
-                    { text: "Intelligence", archetype: ["Sage", "Professor"] },
-                    { text: "Spontaneity", archetype: ["Explorer", "Disappointed Dreamer"] },
-                    { text: "Affection", archetype: ["Lover", "Sensualist"] },
-                    { text: "Ambition", archetype: ["Ruler", "Pampered Royal"] }
+                    { text: "Loyalty", archetype: ["Hero", "Conqueror"], traits: { Trustworthiness: 5, Supportive: 4 } },
+                    { text: "Intelligence", archetype: ["Sage", "Professor"], traits: {} },
+                    { text: "Spontaneity", archetype: ["Explorer", "Disappointed Dreamer"], traits: {} },
+                    { text: "Affection", archetype: ["Lover", "Sensualist"], traits: { Supportive: 4 } },
+                    { text: "Ambition", archetype: ["Ruler", "Pampered Royal"], traits: {} }
                 ]
             },
             {
                 text: "How do you handle failure?",
                 options: [
-                    { text: "Blame others", archetype: ["Rebel", "Reformed Rake"] },
-                    { text: "Learn from it", archetype: ["Sage", "Professor"] },
-                    { text: "Hide it", archetype: ["Innocent", "New Prude"] },
-                    { text: "Laugh it off", archetype: ["Jester", "Drama Queen"] },
-                    { text: "Try harder", archetype: ["Hero", "Conqueror"] }
+                    { text: "Blame others", archetype: ["Rebel", "Reformed Rake"], traits: { Discipline: 2, Carrying: 2 } },
+                    { text: "Learn from it", archetype: ["Sage", "Professor"], traits: { Discipline: 4, Carrying: 4 } },
+                    { text: "Hide it", archetype: ["Innocent", "New Prude"], traits: { Discipline: 2, Carrying: 2 } },
+                    { text: "Laugh it off", archetype: ["Jester", "Drama Queen"], traits: { Discipline: 2, Humor: 5, Carrying: 2 } },
+                    { text: "Try harder", archetype: ["Hero", "Conqueror"], traits: { Discipline: 5, Carrying: 5 } }
                 ]
             },
             {
                 text: "What's your favorite genre?",
                 options: [
-                    { text: "Fantasy", archetype: ["Magician", "Disappointed Dreamer"] },
-                    { text: "Romance", archetype: ["Lover", "Idol Worshiper"] },
-                    { text: "Mystery", archetype: ["Sage", "Exotic Fetishist"] },
-                    { text: "Comedy", archetype: ["Jester", "Drama Queen"] },
-                    { text: "History", archetype: ["Ruler", "Lonely Leader"] }
+                    { text: "Fantasy", archetype: ["Magician", "Disappointed Dreamer"], traits: {} },
+                    { text: "Romance", archetype: ["Lover", "Idol Worshiper"], traits: {} },
+                    { text: "Mystery", archetype: ["Sage", "Exotic Fetishist"], traits: {} },
+                    { text: "Comedy", archetype: ["Jester", "Drama Queen"], traits: { Humor: 5 } },
+                    { text: "History", archetype: ["Ruler", "Lonely Leader"], traits: {} }
                 ]
             },
             {
                 text: "What's your life motto?",
                 options: [
-                    { text: "Carpe Diem", archetype: ["Explorer", "Reformed Rake"] },
-                    { text: "Know thyself", archetype: ["Sage", "Professor"] },
-                    { text: "Live and let live", archetype: ["Everyman", "Rescuer"] },
-                    { text: "Rules are meant to be broken", archetype: ["Rebel", "Roué"] },
-                    { text: "Power is everything", archetype: ["Ruler", "Pampered Royal"] }
+                    { text: "Carpe Diem", archetype: ["Explorer", "Reformed Rake"], traits: {} },
+                    { text: "Know thyself", archetype: ["Sage", "Professor"], traits: {} },
+                    { text: "Live and let live", archetype: ["Everyman", "Rescuer"], traits: {} },
+                    { text: "Rules are meant to be broken", archetype: ["Rebel", "Roué"], traits: {} },
+                    { text: "Power is everything", archetype: ["Ruler", "Pampered Royal"], traits: {} }
                 ]
             },
             {
                 text: "How do you respond to flirting?",
                 options: [
-                    { text: "Play along", archetype: ["Jester", "Coquette"] },
-                    { text: "Analyze intentions", archetype: ["Sage", "Professor"] },
-                    { text: "Shy away", archetype: ["Innocent", "New Prude"] },
-                    { text: "Enjoy the chase", archetype: ["Explorer", "Reformed Rake"] },
-                    { text: "Take charge", archetype: ["Hero", "Conqueror"] }
+                    { text: "Play along", archetype: ["Jester", "Coquette"], traits: { Communication: 4, Humor: 5 } },
+                    { text: "Analyze intentions", archetype: ["Sage", "Professor"], traits: { Communication: 5 } },
+                    { text: "Shy away", archetype: ["Innocent", "New Prude"], traits: { Communication: 2 } },
+                    { text: "Enjoy the chase", archetype: ["Explorer", "Reformed Rake"], traits: { Communication: 2 } },
+                    { text: "Take charge", archetype: ["Hero", "Conqueror"], traits: { Communication: 3 } }
                 ]
             },
             {
                 text: "What defines your identity?",
                 options: [
-                    { text: "Relationships", archetype: ["Lover", "Sensualist"] },
-                    { text: "Achievements", archetype: ["Hero", "Crushed Star"] },
-                    { text: "Knowledge", archetype: ["Sage", "Professor"] },
-                    { text: "Creativity", archetype: ["Creator", "Disappointed Dreamer"] },
-                    { text: "Status", archetype: ["Ruler", "Pampered Royal"] }
+                    { text: "Relationships", archetype: ["Lover", "Sensualist"], traits: {} },
+                    { text: "Achievements", archetype: ["Hero", "Crushed Star"], traits: { Discipline: 5 } },
+                    { text: "Knowledge", archetype: ["Sage", "Professor"], traits: {} },
+                    { text: "Creativity", archetype: ["Creator", "Disappointed Dreamer"], traits: {} },
+                    { text: "Status", archetype: ["Ruler", "Pampered Royal"], traits: { Discipline: 3 } }
                 ]
             }
         ];
@@ -432,7 +517,7 @@
                 details: {
                     motto: "Don't fence me in",
                     goal: "To experience a better, more authentic life",
-                    fear: "Conformity, being trapped",
+                    fear: "Conformity",
                     traits: ["Restless", "Adventurous", "Independent"],
                     examples: ["Indiana Jones", "Moana"]
                 }
@@ -454,7 +539,7 @@
                 details: {
                     motto: "I only have eyes for you",
                     goal: "To be in a relationship with people, work, or surroundings",
-                    fear: "Being alone, unwanted",
+                    fear: "Being alone",
                     traits: ["Passionate", "Romantic", "Committed"],
                     examples: ["Romeo and Juliet", "Jack (Titanic)"]
                 }
@@ -465,7 +550,7 @@
                 details: {
                     motto: "If you can imagine it, it can be done",
                     goal: "To create something of enduring value",
-                    fear: "Mediocrity, being uninspired",
+                    fear: "Mediocrity",
                     traits: ["Imaginative", "Artistic", "Driven", "Innovative"],
                     examples: ["Tony Stark", "Steve Jobs (in storytelling)"]
                 }
@@ -537,14 +622,37 @@
             "Floating Gender": { description: "Rejects traditional gender roles." }
         };
 
+        // Trait Scoring (Standardized names)
+        const traitNames = ["Trustworthiness", "Carrying", "Communication", "Humor", "Supportive", "Discipline"];
+
         // Quiz Logic
         let currentQuestion = 0;
         let userName = "";
-        let scores = { personality: {}, victim: {} };
+        let scores = { personality: {}, victim: {}, traits: {} };
+        let totalRawTraitScores = {};
+        let questionContributionsCount = {};
 
         function initScores() {
             Object.keys(personalityArchetypes).forEach(arch => scores.personality[arch] = 0);
             Object.keys(victimArchetypes).forEach(arch => scores.victim[arch] = 0);
+
+            totalRawTraitScores = {};
+            questionContributionsCount = {};
+            traitNames.forEach(trait => {
+                totalRawTraitScores[trait] = 0;
+                questionContributionsCount[trait] = 0;
+            });
+        }
+
+        function startQuiz() {
+            userName = document.getElementById('userName').value.trim();
+            if (!userName) return alert('Please enter your name!');
+
+            initScores();
+            currentQuestion = 0;
+            document.getElementById('landing').classList.remove('active');
+            document.getElementById('quiz').classList.add('active');
+            showQuestion();
         }
 
         function showQuestion() {
@@ -561,16 +669,59 @@
             updateProgress();
         }
 
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+        }
+
         function nextQuestion() {
             const selected = document.querySelectorAll('input[name="answer"]:checked');
             if (selected.length === 0) return alert('Please select at least one answer!');
-            
+
+            const currentQuestionEarnedScores = {};
+            traitNames.forEach(trait => {
+                currentQuestionEarnedScores[trait] = 0;
+            });
+
             selected.forEach(checkbox => {
-                const answer = questions[currentQuestion].options[checkbox.value];
-                answer.archetype.forEach(arch => {
-                    if (scores.personality[arch] !== undefined) scores.personality[arch]++;
-                    if (scores.victim[arch] !== undefined) scores.victim[arch]++;
+                const answerIndex = parseInt(checkbox.value, 10);
+                const answer = questions[currentQuestion].options[answerIndex];
+
+                // Score Archetypes
+                if (answer.archetype) {
+                    answer.archetype.forEach(arch => {
+                        if (scores.personality[arch] !== undefined) scores.personality[arch]++;
+                        if (scores.victim[arch] !== undefined) scores.victim[arch]++;
+                    });
+                }
+
+                // Accumulate raw trait scores
+                if (answer.traits) {
+                    for (const trait in answer.traits) {
+                        if (currentQuestionEarnedScores[trait] !== undefined) {
+                            currentQuestionEarnedScores[trait] += answer.traits[trait];
+                        }
+                    }
+                }
+            });
+
+            // Update total trait scores and count contributions
+            traitNames.forEach(trait => {
+                let traitExistsInQuestion = false;
+                questions[currentQuestion].options.forEach(option => {
+                    if (option.traits && option.traits[trait] !== undefined) {
+                        traitExistsInQuestion = true;
+                    }
                 });
+
+                if (traitExistsInQuestion) {
+                    if (selected.length > 1 && currentQuestionEarnedScores[trait] > 0) {
+                        totalRawTraitScores[trait] += currentQuestionEarnedScores[trait] / selected.length;
+                    } else {
+                        totalRawTraitScores[trait] += currentQuestionEarnedScores[trait];
+                    }
+                    questionContributionsCount[trait]++;
+                }
             });
 
             currentQuestion++;
@@ -581,9 +732,27 @@
             }
         }
 
+        function calculateTraitScores() {
+            const normalizedScores = {};
+            traitNames.forEach(trait => {
+                const totalEarned = totalRawTraitScores[trait] || 0;
+                const numContributions = questionContributionsCount[trait] || 1; // Avoid division by zero
+                let normalizedScore = 0;
+
+                // Normalize based on max possible score per question (assuming 5)
+                if (numContributions > 0) {
+                    const averageEarned = totalEarned / numContributions;
+                    normalizedScore = (averageEarned / 5) * 100; // Max score per question is 5
+                }
+
+                normalizedScores[trait] = Math.min(100, Math.max(0, Math.round(normalizedScore))); // Clamp between 0 and 100
+            });
+            return normalizedScores;
+        }
+
         function showResults() {
-            const personalityResult = Object.entries(scores.personality).sort((a,b) => b[1]-a[1])[0];
-            const victimResults = Object.entries(scores.victim).sort((a,b) => b[1]-a[1]).slice(0,3);
+            const personalityResult = Object.entries(scores.personality).sort((a, b) => b[1] - a[1])[0];
+            const victimResults = Object.entries(scores.victim).sort((a, b) => b[1] - a[1]).slice(0, 3);
 
             document.getElementById('resultName').textContent = `${userName}'s Results`;
             document.getElementById('personalityType').textContent = personalityResult[0];
@@ -605,25 +774,118 @@
             // Display victim archetypes
             const victimList = document.getElementById('victimList');
             victimList.innerHTML = victimResults.map(([arch]) => `
-                <li><strong>${arch}</strong>: ${victimArchetypes[arch].description}</li>
+                <li><strong>${arch}</strong>: ${victimArchetypes[arch]?.description || 'No description available.'}</li>
             `).join('');
+
+            // Calculate and display normalized trait scores
+            const normalizedTraits = calculateTraitScores();
+            console.log("Normalized Trait Scores:", normalizedTraits);
+
+            createRadarChart(normalizedTraits);
+
+            // Display trait scores
+            const traitScoresContainer = document.getElementById('traitScores');
+            traitScoresContainer.innerHTML = '';
+            for (const trait in normalizedTraits) {
+                const scoreDiv = document.createElement('div');
+                scoreDiv.className = 'trait-score';
+                scoreDiv.innerHTML = `${trait}: <span>${normalizedTraits[trait]}</span>`;
+                traitScoresContainer.appendChild(scoreDiv);
+            }
 
             document.getElementById('quiz').classList.remove('active');
             document.getElementById('results').classList.add('active');
         }
 
-        function startQuiz() {
-            userName = document.getElementById('userName').value.trim();
-            if (!userName) return alert('Please enter your name');
-            initScores();
-            document.getElementById('landing').classList.remove('active');
-            document.getElementById('quiz').classList.add('active');
-            showQuestion();
-        }
+        function createRadarChart(data) {
+            const container = document.getElementById('radarChartContainer');
+            container.innerHTML = ''; // Clear previous chart
 
-        function updateProgress() {
-            const progress = (currentQuestion / questions.length) * 100;
-            document.getElementById('progress').style.width = `${progress}%`;
+            const traits = Object.keys(data);
+            const values = Object.values(data).map(v => Math.max(0, v)); // Ensure no negative values
+            const numTraits = traits.length;
+            const width = 320; // Increased width to accommodate labels
+            const height = 320; // Increased height to accommodate labels
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) * 0.35; // Reduced radius for label space
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("width", width);
+            svg.setAttribute("height", height);
+            svg.setAttribute("viewBox", `-20 -20 ${width + 40} ${height + 40}`); // Expanded viewBox to prevent clipping
+
+            // Draw grid circles (20%, 40%, 60%, 80%, 100%)
+            for (let i = 1; i <= 5; i++) {
+                const r = radius * (i / 5);
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", centerX);
+                circle.setAttribute("cy", centerY);
+                circle.setAttribute("r", r);
+                circle.classList.add("radar-grid-circle");
+                svg.appendChild(circle);
+            }
+
+            // Draw axes and labels
+            traits.forEach((trait, i) => {
+                const angle = (i / numTraits) * 2 * Math.PI - Math.PI / 2;
+                const xEnd = centerX + Math.cos(angle) * radius;
+                const yEnd = centerY + Math.sin(angle) * radius;
+
+                // Axis line
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", centerX);
+                line.setAttribute("y1", centerY);
+                line.setAttribute("x2", xEnd);
+                line.setAttribute("y2", yEnd);
+                line.classList.add("radar-axis-line");
+                svg.appendChild(line);
+
+                // Label
+                const labelDistance = radius * 1.3; // Increased distance to push labels out
+                let xLabel = centerX + Math.cos(angle) * labelDistance;
+                let yLabel = centerY + Math.sin(angle) * labelDistance;
+
+                // Adjust label positions
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("x", xLabel);
+                text.setAttribute("y", yLabel);
+                text.setAttribute("text-anchor", Math.cos(angle) > 0.5 ? "start" : Math.cos(angle) < -0.5 ? "end" : "middle");
+                text.setAttribute("dominant-baseline", Math.sin(angle) > 0.5 ? "hanging" : Math.sin(angle) < -0.5 ? "text-bottom" : "middle");
+                text.classList.add("radar-label");
+                text.textContent = trait;
+                svg.appendChild(text);
+            });
+
+            // Draw data polygon
+            let points = "";
+            values.forEach((value, i) => {
+                const angle = (i / numTraits) * 2 * Math.PI - Math.PI / 2;
+                const r = radius * (value / 100);
+                const x = centerX + Math.cos(angle) * r;
+                const y = centerY + Math.sin(angle) * r;
+                points += `${x},${y} `;
+            });
+            const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            polygon.setAttribute("points", points.trim());
+            polygon.classList.add("radar-data-area");
+            svg.appendChild(polygon);
+
+            // Draw data points
+            values.forEach((value, i) => {
+                const angle = (i / numTraits) * 2 * Math.PI - Math.PI / 2;
+                const r = radius * (value / 100);
+                const x = centerX + Math.cos(angle) * r;
+                const y = centerY + Math.sin(angle) * r;
+                const point = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                point.setAttribute("cx", x);
+                point.setAttribute("cy", y);
+                point.classList.add("radar-data-point");
+                svg.appendChild(point);
+            });
+
+            container.appendChild(svg);
+            console.log("Radar chart rendered with data:", data);
         }
     </script>
 </body>
